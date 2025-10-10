@@ -117,7 +117,7 @@ void AudioOutputI2SQuad_F32::isr(void)
         offset = 0;
     }
 
-    // Debugging code.
+    /* Debugging code.
     if (block_left_1st)
         Serial.printf("block_left_1st\n");
     if (block_right_1st)
@@ -126,6 +126,7 @@ void AudioOutputI2SQuad_F32::isr(void)
         Serial.printf("block_left_2nd\n");
     if (block_right_2nd)
         Serial.printf("block_right_2nd\n");
+        */
 
     // "Ping pong" between loading data into first half and second half of i2s_tx_buffer.
     // The DMA will be transmitting the other half while this isr() runs.
