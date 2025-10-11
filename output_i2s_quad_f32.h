@@ -84,8 +84,6 @@ private:
 	static void config_i2s(bool);
 	static void config_i2s(float);
 	static void config_i2s(bool, float);
-	inline static uint16_t block_left_offset = 0;
-	inline static uint16_t block_right_offset = 0;
 	audio_block_f32_t *inputQueueArray[4];
 	inline static float sample_rate_Hz = AUDIO_SAMPLE_RATE;
 	inline static int audio_block_samples = AUDIO_BLOCK_SAMPLES;
