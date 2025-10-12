@@ -36,8 +36,8 @@ void setup() {
 
   sgtl5000_1.enable();
   sgtl5000_1.setAddress(LOW);
-  AudioMemory(200);
-  AudioMemory_F32(200);
+  AudioMemory(10);
+  AudioMemory_F32(10);
   sgtl5000_1.volume(0.8);  // Set headphone volume.
   sgtl5000_1.unmuteHeadphone();
   Serial.printf("Please listen for tones!\n");
