@@ -5,12 +5,7 @@
 
 #include <Arduino.h>
 #include <Audio.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <OpenAudio_ArduinoLibrary.h>  // Manually installed library.
-#include <TimeLib.h>                   // Part of Teensy Time library.
-#include <arm_math.h>
-#include <arm_const_structs.h>
+#include <OpenAudio_ArduinoLibrary.h>
 #include <AudioStream_F32.h>
 
 const float sample_rate_Hz = 48000.0;
@@ -18,7 +13,7 @@ const int audio_block_samples = 128;   // Always 128
 
 AudioControlSGTL5000 sgtl5000_1;
 AudioSettings_F32 audio_settings(sample_rate_Hz, audio_block_samples);
-AudioSynthWaveformSine_F32 tone0(audio_settings), tone1, tone2, tone3;  // Tones for SSB calibration and IMD testing.
+AudioSynthWaveformSine_F32 tone0(audio_settings), tone1(audio_settings), tone2(audio_settings), tone3(audio_settings);
 AudioOutputI2SQuad_F32 i2s_out(audio_settings);
 
 AudioConnection_F32 connect0(tone0, 0, i2s_out, 0);
@@ -40,24 +35,24 @@ void setup() {
   Serial.printf("DMA errors = %u\n", *dmaErrors);
 
   sgtl5000_1.enable();
-  sgtl5000_1.setAddress(LOW);  // This sets to one of two possible I2C addresses, controlled by a jumper on the Audio Adapter.
+  sgtl5000_1.setAddress(LOW);
   AudioMemory(200);
   AudioMemory_F32(200);
   sgtl5000_1.volume(0.8);  // Set headphone volume.
   sgtl5000_1.unmuteHeadphone();
   Serial.printf("Please listen for tones!\n");
   tone0.amplitude(0.1);
-  tone0.frequency(1000);
+  tone0.frequency(261.63);
   tone1.amplitude(0.1);
-  tone1.frequency(1760.0);
+  tone1.frequency(329.63);
   tone2.amplitude(0.004);
-  tone2.frequency(440);
+  tone2.frequency(392.0);
   tone3.amplitude(0.1);
-  tone3.frequency(2000);
+  tone3.frequency(440.0);
   tone0.begin();
   tone1.begin();
   tone2.begin();
-  tone3.begin();  // The transmitter operates at 48ksps.
+  tone3.begin();
 }
 
 void loop() {
