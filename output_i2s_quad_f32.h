@@ -54,6 +54,8 @@ public:
 	{
 		sample_rate_Hz = settings.sample_rate_Hz;
 		audio_block_samples = settings.audio_block_samples;
+		half_block_length = audio_block_samples / 2;
+		half_buffer_length = audio_block_samples * 2;
 		begin();
 	}
 
@@ -87,6 +89,8 @@ private:
 	audio_block_f32_t *inputQueueArray[4];
 	inline static float sample_rate_Hz = AUDIO_SAMPLE_RATE;
 	inline static int audio_block_samples = AUDIO_BLOCK_SAMPLES;
+	inline static int half_block_length = AUDIO_BLOCK_SAMPLES / 2;
+	inline static int half_buffer_length = AUDIO_BLOCK_SAMPLES * 2;
 	const float32_t F32_TO_I32_NORM_FACTOR = 2147483647.0; // Which is 2^31-1.
 	volatile uint8_t enabled = 1;
 	float outputScale = 1.0f; // Quick volume control

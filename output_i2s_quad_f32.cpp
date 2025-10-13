@@ -45,13 +45,11 @@ DMAMEM __attribute__((aligned(32))) static float32_t i2s_tx_buffer[AUDIO_BLOCK_S
 
 #include <utility/imxrt_hw.h> // From Teensy Audio library.  For set_audioClock().
 
-
 void AudioOutputI2SQuad_F32::begin(void)
 {
     bool transferUsing32bit = false;
     begin(transferUsing32bit);
 }
-
 
 void AudioOutputI2SQuad_F32::begin(bool transferUsing32bit)
 {
@@ -94,7 +92,8 @@ void AudioOutputI2SQuad_F32::isr(void)
 {
     dma.clearInterrupt();
     int32_t *dest = nullptr;
-    uint32_t saddr, offset;
+    uint32_t saddr;
+    int32_t offset;
 
     // Get the current source address from the DMA.
     // This will tell us if the DMA is at halfway or the end.
@@ -104,8 +103,8 @@ void AudioOutputI2SQuad_F32::isr(void)
     {
         // DMA is transmitting the first half of the buffer.
         // dest points to the middle of i2s_tx_buffer.
-        dest = (int32_t *)&i2s_tx_buffer[audio_block_samples * 2]; // this will be diff if we were to do 32-bit samples
-        offset = 64;
+        dest = (int32_t *)&i2s_tx_buffer[audio_block_samples * 2];
+        offset = half_block_length;
         if (AudioOutputI2SQuad_F32::update_responsibility)
             AudioStream_F32::update_all();
     }
@@ -126,7 +125,7 @@ void AudioOutputI2SQuad_F32::isr(void)
         Serial.printf("block_left_2nd\n");
     if (block_right_2nd)
         Serial.printf("block_right_2nd\n");
-        */
+    */
 
     // "Ping pong" between loading data into first half and second half of i2s_tx_buffer.
     // The DMA will be transmitting the other half while this isr() runs.
@@ -138,7 +137,7 @@ void AudioOutputI2SQuad_F32::isr(void)
     // When both inputs are connected to data sources.
     if (block_left_1st && block_right_1st)
     {
-        for (int i = 0, j = 0; i < 64 && j < 256; i = i + 1, j = j + 4)
+        for (int i = 0, j = 0; i < half_block_length && j < half_buffer_length; i = i + 1, j = j + 4)
         {
             dest[j] = block_left_1st->data[i + offset];
             dest[j + 2] = block_right_1st->data[i + offset];
@@ -155,7 +154,7 @@ void AudioOutputI2SQuad_F32::isr(void)
     // Only the right input has something connected.
     else if (block_right_1st)
     {
-        for (int i = 0, j = 0; i < 64 && j < 256; i = i + 1, j = j + 4)
+        for (int i = 0, j = 0; i < half_block_length && j < half_buffer_length; i = i + 1, j = j + 4)
         {
             dest[j + 2] = block_right_1st->data[i + offset];
         }
@@ -166,7 +165,7 @@ void AudioOutputI2SQuad_F32::isr(void)
     // When both inputs are connected to data sources.
     if (block_left_2nd && block_right_2nd)
     {
-        for (int i = 0, j = 0; i < 64 && j < 256; i = i + 1, j = j + 4)
+        for (int i = 0, j = 0; i < half_block_length && j < half_buffer_length; i = i + 1, j = j + 4)
         {
             dest[j + 1] = block_left_2nd->data[i + offset];
             dest[j + 3] = block_right_2nd->data[i + offset];
@@ -175,7 +174,7 @@ void AudioOutputI2SQuad_F32::isr(void)
     //  Only the left input has something connected.
     else if (block_left_2nd)
     {
-        for (int i = 0, j = 0; i < 64 && j < 256; i = i + 1, j = j + 4)
+        for (int i = 0, j = 0; i < half_block_length && j < half_buffer_length; i = i + 1, j = j + 4)
         {
             dest[j + 1] = block_left_2nd->data[i + offset];
         }
@@ -183,7 +182,7 @@ void AudioOutputI2SQuad_F32::isr(void)
     // Only the right input has something connected.
     else if (block_right_2nd)
     {
-        for (int i = 0, j = 0; i < 64 && j < 128; i = i + 1, j = j + 4)
+        for (int i = 0, j = 0; i < half_block_length && j < half_buffer_length; i = i + 1, j = j + 4)
         {
             dest[j + 3] = block_right_2nd->data[i + offset];
         }
@@ -201,43 +200,46 @@ void AudioOutputI2SQuad_F32::isr(void)
     dest = nullptr;
 
     // First left and first right channels.
-    if (block_left_1st && offset == 64)
+    if (block_left_1st && offset == half_block_length)
     {
         AudioStream_F32::release(block_left_1st);
         AudioOutputI2SQuad_F32::block_left_1st = nullptr;
     }
-    if (block_right_1st && offset == 64)
+    if (block_right_1st && offset == half_block_length)
     {
         AudioStream_F32::release(block_right_1st);
         AudioOutputI2SQuad_F32::block_right_1st = nullptr;
     }
-    if (block_left_1st && offset == 64 && block_right_1st && offset == 64)
+    /*
+    if (block_left_1st && && block_right_1st && (offset == half_block_length))
     {
         AudioStream_F32::release(block_left_1st);
         AudioOutputI2SQuad_F32::block_left_1st = nullptr;
         AudioStream_F32::release(block_right_1st);
         AudioOutputI2SQuad_F32::block_right_1st = nullptr;
     }
+        */
     // Second left and right channels.
-    if (block_left_2nd && offset == 64)
+    if (block_left_2nd && offset == half_block_length)
     {
         AudioStream_F32::release(block_left_2nd);
         AudioOutputI2SQuad_F32::block_left_2nd = nullptr;
     }
-    if (block_right_2nd && offset == 64)
+    if (block_right_2nd && offset == half_block_length)
     {
         AudioStream_F32::release(block_right_2nd);
         AudioOutputI2SQuad_F32::block_right_2nd = nullptr;
     }
-    if (block_left_2nd && offset == 64 && block_right_2nd && offset == 64)
+    /*
+    if (block_left_2nd && offset && block_right_2nd && (offset == half_block_length))
     {
         AudioStream_F32::release(block_left_2nd);
         AudioOutputI2SQuad_F32::block_left_2nd = nullptr;
         AudioStream_F32::release(block_right_2nd);
         AudioOutputI2SQuad_F32::block_right_2nd = nullptr;
     }
+        */
 }
-
 
 // Scale the floating point data to integer format used by the data converters.
 // This method modifies the given array in place.
@@ -249,14 +251,13 @@ void AudioOutputI2SQuad_F32::scale_f32_to_i32(float32_t *p_f32, int len)
     }
 }
 
-
 //  Read data blocks from the inputs.
 //  Scale amplitude by outputScale and translate to I32 for DACs.
 //  Do nothing if there is no data available.
 //  Update is called once for every two calls of isr().
 void AudioOutputI2SQuad_F32::update(void)
 {
-    block_left_1st = receiveReadOnly_f32(0); // Input 1 is first left channel.
+    block_left_1st = receiveWritable_f32(0); // Input 1 is first left channel.
     if (block_left_1st)
     {
         __disable_irq();
@@ -266,7 +267,7 @@ void AudioOutputI2SQuad_F32::update(void)
         __enable_irq();
     }
 
-    block_right_1st = receiveReadOnly_f32(1); // Input 2 is first right channel.
+    block_right_1st = receiveWritable_f32(1); // Input 2 is first right channel.
     if (block_right_1st)
     {
         __disable_irq();
@@ -276,7 +277,7 @@ void AudioOutputI2SQuad_F32::update(void)
         __enable_irq();
     }
 
-    block_left_2nd = receiveReadOnly_f32(2); // Input 2 is second left channel.
+    block_left_2nd = receiveWritable_f32(2); // Input 2 is second left channel.
     if (block_left_2nd)
     {
         __disable_irq();
@@ -286,7 +287,7 @@ void AudioOutputI2SQuad_F32::update(void)
         __enable_irq();
     }
 
-    block_right_2nd = receiveReadOnly_f32(3); // Input 4 = 2nd right channel
+    block_right_2nd = receiveWritable_f32(3); // Input 4 = 2nd right channel
     if (block_right_2nd)
     {
         __disable_irq();
@@ -296,7 +297,6 @@ void AudioOutputI2SQuad_F32::update(void)
         __enable_irq();
     }
 }
-
 
 // Configure the I2S peripheral.  This is most, but not all, of the configuration.  The rest is done by begin().
 // Note that the version of this method can be called from the dual channel object via "friend".
@@ -360,7 +360,6 @@ void AudioOutputI2SQuad_F32::config_i2s(bool transferUsing32bit, float fs_Hz)
     I2S1_RCR5 = I2S_RCR5_WNW((32 - 1)) | I2S_RCR5_W0W((32 - 1)) | I2S_RCR5_FBT((32 - 1));
 }
 
-
 // From Chip: The I2SSlave functionality has NOT been extended to
 // allow for different block sizes or sample rates (2020-10-31)
 // Quad slave object not working yet!  Greg Raven KF5N
@@ -376,7 +375,7 @@ void AudioOutputI2SQuadslave_F32::begin(void)
     dma.TCD->SADDR = i2s_tx_buffer;
     dma.TCD->SOFF = 2;
     dma.TCD->ATTR = DMA_TCD_ATTR_SSIZE(1) | DMA_TCD_ATTR_DSIZE(1);
-    dma.TCD->NBYTES_MLNO = 2;// Only the right input has something connected.
+    dma.TCD->NBYTES_MLNO = 2; // Only the right input has something connected.
     dma.TCD->SLAST = -sizeof(i2s_tx_buffer);
     dma.TCD->DADDR = (void *)((uint32_t)&I2S0_TDR0 + 2);
     dma.TCD->DOFF = 0;
