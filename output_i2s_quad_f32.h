@@ -45,7 +45,7 @@
 
 class AudioOutputI2SQuad_F32 : public AudioStream_F32
 {
-	// GUI: inputs:2, outputs:0  //this line used for automatic generation of GUI node
+	// GUI: inputs:4, outputs:0  //this line used for automatic generation of GUI node
 public:
 	// uses default AUDIO_SAMPLE_RATE and BLOCK_SIZE_SAMPLES from AudioStream_F32.h:
 	AudioOutputI2SQuad_F32(void) : AudioStream_F32(4, inputQueueArray) { begin(); }

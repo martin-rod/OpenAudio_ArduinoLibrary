@@ -1,7 +1,7 @@
 // Demonstration of AudioOutputI2SQuad_F32 four channel I2S output object.
 // Greg Raven KF5N October 2025.
 // The first left and right channels are output on pin 7, which drives the
-// Teensy Audio Adapter.  The second left and right channels are output on pin 32.
+// Teensy Audio Adapter (Teensy 4.1).  The second left and right channels are output on pin 32 (Teensy 4.1).
 
 #include <Arduino.h>
 #include <Audio.h>

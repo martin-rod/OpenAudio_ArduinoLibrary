@@ -38,12 +38,10 @@
 #include "output_i2s_quad_f32.h"
 #include "output_i2s_f32.h" // Required for 2 channel to be a "friend" so its I2S configuration method can be used.
 #include <arm_math.h>
-#include <Audio.h> //to get access to Audio/utlity/imxrt_hw.h...do we really need this??? WEA 2020-10-31
+#include <utility/imxrt_hw.h> // From Teensy Audio library.  For set_audioClock().
 
 DMAChannel AudioOutputI2SQuad_F32::dma(false);
 DMAMEM __attribute__((aligned(32))) static float32_t i2s_tx_buffer[AUDIO_BLOCK_SAMPLES * 4]; // 4 channels 128 samples each, total = 512.
-
-#include <utility/imxrt_hw.h> // From Teensy Audio library.  For set_audioClock().
 
 void AudioOutputI2SQuad_F32::begin(void)
 {
@@ -59,7 +57,7 @@ void AudioOutputI2SQuad_F32::begin(bool transferUsing32bit)
     I2S1_RCSR |= I2S_RCSR_RE | I2S_RCSR_BCE;
     I2S1_TCSR = I2S_TCSR_TE | I2S_TCSR_BCE | I2S_TCSR_FRDE;
     I2S1_TCR3 = I2S_TCR3_TCE_2CH;
-    CORE_PIN7_CONFIG = 3;  // Teensy pin 7 is 1st and 2nd channels of I2s (Audio Adapter).
+    CORE_PIN7_CONFIG = 3;  // Teensy pin 7 is 1st and 2nd channels of I2S (Audio Adapter on Teensy 4.1).
     CORE_PIN32_CONFIG = 3; // Teensy pin 32 is 3rd and 4th channels of I2S.
     memset(i2s_tx_buffer, 0, sizeof(i2s_tx_buffer));
 
@@ -210,15 +208,7 @@ void AudioOutputI2SQuad_F32::isr(void)
         AudioStream_F32::release(block_right_1st);
         AudioOutputI2SQuad_F32::block_right_1st = nullptr;
     }
-    /*
-    if (block_left_1st && && block_right_1st && (offset == half_block_length))
-    {
-        AudioStream_F32::release(block_left_1st);
-        AudioOutputI2SQuad_F32::block_left_1st = nullptr;
-        AudioStream_F32::release(block_right_1st);
-        AudioOutputI2SQuad_F32::block_right_1st = nullptr;
-    }
-        */
+
     // Second left and right channels.
     if (block_left_2nd && offset == half_block_length)
     {
@@ -230,15 +220,6 @@ void AudioOutputI2SQuad_F32::isr(void)
         AudioStream_F32::release(block_right_2nd);
         AudioOutputI2SQuad_F32::block_right_2nd = nullptr;
     }
-    /*
-    if (block_left_2nd && offset && block_right_2nd && (offset == half_block_length))
-    {
-        AudioStream_F32::release(block_left_2nd);
-        AudioOutputI2SQuad_F32::block_left_2nd = nullptr;
-        AudioStream_F32::release(block_right_2nd);
-        AudioOutputI2SQuad_F32::block_right_2nd = nullptr;
-    }
-        */
 }
 
 // Scale the floating point data to integer format used by the data converters.
