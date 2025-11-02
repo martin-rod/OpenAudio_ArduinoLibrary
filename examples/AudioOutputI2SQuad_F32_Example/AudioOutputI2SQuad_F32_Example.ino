@@ -8,7 +8,7 @@
 #include <OpenAudio_ArduinoLibrary.h>
 #include <AudioStream_F32.h>
 
-const float sample_rate_Hz = 48000.0;
+const int sample_rate_Hz = 48000;
 const int audio_block_samples = 128;   // Always 128
 
 AudioControlSGTL5000 sgtl5000_1;

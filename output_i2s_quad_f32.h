@@ -65,8 +65,6 @@ public:
 	{
 		outputScale = _oscale;
 	}
-	virtual void update(void);
-	void scale_f32_to_i32(float32_t *p_f32, int len);
 
 protected:
 	AudioOutputI2SQuad_F32(int dummy) : AudioStream_F32(4, inputQueueArray) {} // to be used only inside AudioOutputI2Sslave !!
@@ -79,9 +77,11 @@ protected:
 	inline static bool update_responsibility = false;
 	static DMAChannel dma;
 	static void isr(void);
+	virtual void update(void);
 
 private:
 	static void config_i2s(int fs_Hz);
+	void scale_f32_to_i32(float32_t *p_f32, int len);
 	audio_block_f32_t *inputQueueArray[4];
 	inline static int sample_rate_Hz = AUDIO_SAMPLE_RATE;
 	inline static int audio_block_samples = AUDIO_BLOCK_SAMPLES;
