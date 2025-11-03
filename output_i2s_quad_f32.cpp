@@ -44,12 +44,12 @@ void AudioOutputI2SQuad_F32::begin()
 {
     // Configure most of the I2S.
     AudioOutputI2SQuad_F32::config_i2s(sample_rate_Hz);
-    // Configure the rest of the I2S unique to quad output.
-    I2S1_RCSR |= I2S_RCSR_RE | I2S_RCSR_BCE;
-    I2S1_TCSR = I2S_TCSR_TE | I2S_TCSR_BCE | I2S_TCSR_FRDE;
-    I2S1_TCR3 = I2S_TCR3_TCE_2CH;
+
+    // Configure the I2S output pins.
     CORE_PIN7_CONFIG = 3;  // Teensy pin 7 is 1st and 2nd channels of I2S (Audio Adapter on Teensy 4.1).
     CORE_PIN32_CONFIG = 3; // Teensy pin 32 is 3rd and 4th channels of I2S.
+
+    // Zero the transmit buffer.
     memset(i2s_tx_buffer, 0, sizeof(i2s_tx_buffer));
 
     // Configure the DMA channel.
@@ -72,6 +72,11 @@ void AudioOutputI2SQuad_F32::begin()
     update_responsibility = update_setup();
     dma.enable();
     enabled = 1; // What is this?
+
+    // Configure the rest of the I2S unique to quad output.
+    I2S1_RCSR |= I2S_RCSR_RE | I2S_RCSR_BCE;
+    I2S1_TCSR = I2S_TCSR_TE | I2S_TCSR_BCE | I2S_TCSR_FRDE;
+    I2S1_TCR3 = I2S_TCR3_TCE_2CH;
 }
 
 // Interrupt service routine called twice per update by the DMA.

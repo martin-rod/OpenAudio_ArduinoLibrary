@@ -1,5 +1,5 @@
 // Demonstration of AudioOutputI2S_F32 two channel I2S output object.
-// Greg Raven KF5N October 2025.
+// Greg Raven KF5N November 2025.
 // The left and right channels are output on pin 7, which drives the
 // Teensy Audio Adapter.
 // A headphone can be plugged into the Audio Adapter to hear the tones.
@@ -37,7 +37,6 @@ void setup() {
 
   sgtl5000_1.enable();
   sgtl5000_1.setAddress(LOW);
-  AudioMemory(10);
   AudioMemory_F32(10);
   sgtl5000_1.volume(0.8);  // Set headphone volume.
   sgtl5000_1.unmuteHeadphone();
